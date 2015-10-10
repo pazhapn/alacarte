@@ -2,11 +2,11 @@ var gulp = require('gulp'), clean = require('gulp-clean'), include = require('gu
   concat = require('gulp-concat'), uglify = require('gulp-uglify'), rename = require('gulp-rename'),
   filesize = require('gulp-filesize'), less = require('gulp-less'), changed = require('gulp-changed'),
   typescript = require("gulp-typescript"), sourcemaps = require("gulp-sourcemaps"),
-  plumber = require('gulp-plumber'), haml = require('gulp-ruby-haml'), sass = require('gulp-ruby-sass'),
+  plumber = require('gulp-plumber'), haml = require('gulp-ruby-haml'), sass = require('gulp-sass'),
   minifyCSS = require('gulp-minify-css'), neat = require('node-neat').includePaths,
   tsPath = ['src/ts/**/*.ts'], jsPath = ['src/js/site/*.js'], sassPath = 'src/scss/',
   requirePath = 'src/require/*.js', compilePath = 'build/', cssCompilePath = compilePath + 'css',
-  jsCompilePath = compilePath + 'js',
+  jsCompilePath = compilePath + 'js', connect = require('gulp-connect'),
   delFiles = [compilePath, 'static/scripts/*.min.js', compilePath+'css'];
 
 gulp.task('clean', function() {
@@ -15,6 +15,24 @@ gulp.task('clean', function() {
     })
     .pipe(clean());
 });
+gulp.task('sass', function() {
+  return gulp.src('src/sass/**/*.scss')
+  .pipe(plumber())
+  .pipe(sourcemaps.init())
+  .pipe(sass())
+  .pipe(concat('app.un.css'))
+  .pipe(sourcemaps.write())
+  .pipe(gulp.dest('static/css'))
+  .pipe(rename('app.min.css'))
+  .pipe(uglify())
+  .pipe(gulp.dest('static/css'))
+  .pipe(plumber.stop())
+  .pipe(connect.reload())
+  .on('error', function (err) {
+    console.error('Error', err.message);
+  });
+});
+/*
 gulp.task('sass', function() {
     return sass(sassPath, { style: 'expanded', sourcemap: true})
         .pipe(sourcemaps.write('maps', {
@@ -26,7 +44,6 @@ gulp.task('sass', function() {
           console.error('Error', err.message);
         });
 });
-/*
 gulp.task('js', function() {
   return gulp.src(jsCompilePath)
   .pipe(plumber())
@@ -62,6 +79,7 @@ gulp.task('typescript', function() {
   .pipe(uglify())
   .pipe(gulp.dest('static/scripts'))
   .pipe(plumber.stop())
+  .pipe(connect.reload())
   .on('error', function (err) {
     console.error('Error', err.message);
   });
@@ -75,6 +93,13 @@ gulp.task('watch', function() {
   gulp.watch(requirePath, ['require']);
 });
 
+gulp.task('webserver', function() {
+  connect.server({
+    livereload: true,
+    port: 8080
+  });
+});
+
 //gulp.task('default', ['traceur', 'babel', 'watch']);
 //gulp.task('default', ['watch', 'typescript', 'js', 'sass', 'require']);
-gulp.task('default', ['watch', 'typescript', 'sass', 'require']);
+gulp.task('default', ['watch', 'typescript', 'sass', 'require','webserver']);

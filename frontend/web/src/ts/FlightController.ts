@@ -1,52 +1,65 @@
+/// <reference path="../defi/require.d.ts"/>
 /// <reference path="../defi/jquery.d.ts"/>
-/// <reference path="FlightModels.ts"/>
+/// <reference path="../defi/d3.d.ts"/>
+/// <reference path="../defi/moment-timezone/moment-timezone.d.ts"/>
+/// <reference path="FlightScreenUI.ts"/>
+/// <reference path="FlightUIData.ts"/>
+/// <reference path="FlightChartUI.ts"/>
+/// <reference path="ui/ItineraryChart.ts"/>
+
+define(function (require) {
+    moment = require("moment");
+});
+
+declare var requestId: string;
 
 module Flights {
+    
+    export var listElement: D3.Selection = null;
+	export var itineraryChart: ItineraryChart = null;
+    export var axisData: AxisData = null;
+	export var parseDate = null;        
+        
+    export var listByConds = {price: 1, duration: 2};
+    export var orderByConds = {asc: 1, desc: 2};
+    export var dimType = {departTimeDim: 1, arrivalTimeDim: 2, priceDim: 3, durationDim: 4};
+    export var currentValues = null;
+    export var departZone;
+    export var arrivalZone;
+    
+	export var flightUIData:FlightUIData;		
+    export var lineGen:D3.Svg.Line;
+		
+    
     export class FlightController {
-        constructor() {}
-
-        public initialize() {
-            console.log('initializing the Flights Controller');
-            //this.trackEvents();
+        private ui: FlightScreenUI = null;
+        
+        constructor() {
+            parseDate =d3.time.format("%Y-%m-%dT%H:%M%Z").parse;
+            currentValues = {listBy: listByConds.price, orderBy: orderByConds.asc, listSize: 10, slicePos: 0}
+            flightUIData = new FlightUIData();
+            this.ui = new FlightScreenUI();
         }
-
-        private trackEvents() {
-            console.log('trackEvents');
-            $("#sortBy").change((e) => {
-              var sortByVal = $(e.currentTarget).val();
-              $("#invForm input[name='sortBy']").val(sortByVal);
-              $( "#invForm" ).submit();
-            });
-
-            $("a.gotoPage").click((e) => {
-              e.preventDefault();
-              var clickedPage = $(e.currentTarget).attr('data-page');
-              $("#invForm input[name='page']").val(clickedPage);
-              $( "#invForm" ).submit();
-              return false;
-            });
-
-            $(".facet").click((e) => {
-              var target = $(e.currentTarget);
-              var facet = target.attr('name');
-              var facetType = target.attr('type');
-              var facetValue = target.attr('value');
-              if(facetType === "radio"){
-                $("#invForm input[name='"+facet+"']").val(facetValue);
-              }else if(facetType === "checkbox"){
-                var invFormElement = $("#invForm input[name='f-"+facet+"']");
-                var facetValues = invFormElement.val();
-                console.log(facet+" checked "+facetValues+" "+invFormElement.attr("name"));
-                if(target.is(':checked')){
-                  facetValues = facetValues+","+facetValue;
-                }else{
-                  facetValues = facetValues.replace(facetValue, '');
-                  facetValues = facetValues.replace(/[,]+/g, ',');
+        
+        public getFlights(formData: string): void {       
+            console.log("retrieving requestId "+requestId);     
+            var url: string = "/static/backend.json";
+            $.ajax({
+                method: "GET",
+                url: url,
+                dataType: 'json',
+                success: (data) => {  
+                    axisData = (<FlightSearchResults> data).axisData;
+                    console.log("now ",moment.version);
+                    departZone = moment.parseZone(axisData.dateAxisMinMaxList[0].departMin).utcOffset();
+                    arrivalZone = moment.parseZone(axisData.dateAxisMinMaxList[0].arrivalMax).utcOffset();
+                    console.log(departZone, arrivalZone);
+                    itineraryChart = new ItineraryChart((<FlightSearchResults> data).itineraryResults.trips);
+                    this.ui.initializeCharts((<FlightSearchResults> data).itineraryResults.trips);
+                    itineraryChart.renderList();
+                    data = null;                    
                 }
-                invFormElement.val(facetValues);
-                $( "#invForm" ).submit();
-              }
             });
         }
-    }
+	}
 }

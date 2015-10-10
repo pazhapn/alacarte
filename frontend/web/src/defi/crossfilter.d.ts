@@ -14,25 +14,25 @@ declare module CrossFilter {
         version: string;
         permute<T>(array: T[], index: number[]): T[];
         bisect: {
-                <T>(array: T[], value: T, lo: number, hi: number): number;
-                by<T>(value: Selector<T>): Bisector<T>;
+            <T>(array: T[], value: T, lo: number, hi: number): number;
+            by<T>(value: Selector<T>): Bisector<T>;
         }
-            heap: {
-                <T>(array: T[], lo: number, hi: number): T[];
+        heap: {
+            <T>(array: T[], lo: number, hi: number): T[];
 
-                by<T>(value: Selector<T>): Heap<T>;
+            by<T>(value: Selector<T>): Heap<T>;
         }
-            heapselect: {
-                <T>(array: T[], lo: number, hi: number, k: number): T[];
-                by<T>(value: Selector<T>): HeapSelect<T>;
+        heapselect: {
+            <T>(array: T[], lo: number, hi: number, k: number): T[];
+            by<T>(value: Selector<T>): HeapSelect<T>;
         }
-            insertionsort: {
-                <T>(array: T[], lo: number, hi: number): T[];
-                by<T>(value: Selector<T>): Sort<T>;
+        insertionsort: {
+            <T>(array: T[], lo: number, hi: number): T[];
+            by<T>(value: Selector<T>): Sort<T>;
         }
-            quicksort: {
-                <T>(array: T[], lo: number, hi: number): T[];
-                by<T>(value: Selector<T>): Sort<T>;
+        quicksort: {
+            <T>(array: T[], lo: number, hi: number): T[];
+            by<T>(value: Selector<T>): Sort<T>;
         }
     }
 
@@ -89,7 +89,6 @@ declare module CrossFilter {
         size(): number;
         groupAll(): GroupAll<T>;
         dimension<TDimension>(value: (data: T) => TDimension): Dimension<T, TDimension>;
-        getData(): T[];
     }
 
     export interface Dimension<T, TDimension> {
@@ -102,11 +101,9 @@ declare module CrossFilter {
         filterAll(): Dimension<T, TDimension>;
         top(k: number): T[];
         bottom(k: number): T[];
-        topFrom(k: number, from: number): T[];
-        bottomFrom(k: number, from: number): T[];
         dispose(): void;
-        group(): Group<T, TDimension, number>;
-        group<TGroup>(groupValue: (data: T) => TGroup): Group<T, TDimension, TGroup>;
+		group(): Group<T, TDimension, TDimension>;
+		group<TGroup>(groupValue: (data: TDimension) => TGroup): Group<T, TDimension, TGroup>;
         groupAll(): GroupAll<T>;
     }
 }
