@@ -27,8 +27,7 @@ module Flights {
     export var departZone;
     export var arrivalZone;
     
-	export var flightUIData:FlightUIData;		
-    export var lineGen:D3.Svg.Line;
+	export var flightUIData:FlightUIData;
 		
     
     export class FlightController {
@@ -56,7 +55,8 @@ module Flights {
                     console.log(departZone, arrivalZone);
                     itineraryChart = new ItineraryChart((<FlightSearchResults> data).itineraryResults.trips);
                     this.ui.initializeCharts((<FlightSearchResults> data).itineraryResults.trips);
-                    itineraryChart.renderList();
+                    //itineraryChart.renderList();
+                    //itineraryChart.resize(0, 0, null);
                     data = null;                    
                 }
             });

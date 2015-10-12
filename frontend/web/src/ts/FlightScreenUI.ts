@@ -31,6 +31,7 @@ module Flights {
             if(axisData != null) {                
 				for(var i=0; i < this.flightChartUIs.length; i++){
 					this.flightChartUIs[i].redrawAxis();
+					this.flightChartUIs[i].redrawFlights(0, null);
 				}
             }
         }

@@ -3,10 +3,6 @@
 /// <reference path="../models/FlightModels.ts"/>
 
 module Flights {  
-    export class LegLine{
-        public flightPosition: number;
-        public groundTime: String;
-    }
     export class ItineraryChart{
         
 		private filter: CrossFilter.CrossFilter<TripDetail>;
@@ -23,33 +19,35 @@ module Flights {
                 this.sliceCharts[i] = new SliceChart(i, this.filter);
             }
         }
-        public resize(dim: number, slicePos: number, extent): any[]{
+        public resize(dim: number, slicePos: number, extent): Array<TripDetail>{
             console.log("resize ",dim, slicePos, extent);
-            if(dim == dimType.departTimeDim){
-                this.sliceCharts[slicePos].departDim.filterRange(extent);
-            }else if(dim == dimType.arrivalTimeDim){
-                this.sliceCharts[slicePos].arrivalDim.filterRange(extent);
-            }else if(dim == dimType.durationDim){
-                this.sliceCharts[slicePos].durationDim.filterRange(extent);
-            }else if(dim == dimType.priceDim){
-                this.priceDim.filterRange(extent);
+            if(extent != null){
+                if(dim == dimType.departTimeDim){
+                    this.sliceCharts[slicePos].departDim.filterRange(extent);
+                }else if(dim == dimType.arrivalTimeDim){
+                    this.sliceCharts[slicePos].arrivalDim.filterRange(extent);
+                }else if(dim == dimType.durationDim){
+                    this.sliceCharts[slicePos].durationDim.filterRange(extent);
+                }else if(dim == dimType.priceDim){
+                    this.priceDim.filterRange(extent);
+                }
             }
             return this.renderList();
         }
 		
-        public renderList(): any[] {
+        private renderList(): Array<TripDetail> {
             console.log("renderList ",currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
             //console.log("renderList ",this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos));
-            var data = this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
+            var trips = this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
             var flightsList = listElement.selectAll(".flight")
-                .data(data, function (d) { return d.tripId; });
+                .data(trips, function (d) { return d.tripId; });
             flightsList.enter().append("div").attr("class", "flight").html((d) => d.html);
             flightsList.exit().remove();
             flightsList.order();
-            return data;
+            return trips;
         }
         
-        private getList(listBy:number, orderBy:number, listSize: number, slicePos: number) {
+        private getList(listBy:number, orderBy:number, listSize: number, slicePos: number): Array<TripDetail> {
             if (listBy == listByConds.price) {
                 return this.getSortedList(this.priceDim, orderBy, listSize);
             } else if (listBy == listByConds.duration) {
@@ -57,7 +55,7 @@ module Flights {
             } 
         }
 
-        private getSortedList(dimension: any, orderBy:number, listSize: number) {
+        private getSortedList(dimension: any, orderBy:number, listSize: number): Array<TripDetail>{
             //console.log("getSortedList ", this.listByOrder);
             if (orderBy == orderByConds.asc) {
                 return dimension.bottom(listSize);

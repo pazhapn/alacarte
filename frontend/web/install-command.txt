@@ -1,1 +1,5 @@
+run this only from node js command prompt
+
+npm install -g --save-dev gulp
+npm config set registry http://registry.npmjs.org/
 npm install --save-dev gulp gulp-clean gulp-sass gulp-connect gulp-include gulp-concat gulp-uglify gulp-rename gulp-filesize gulp-less gulp-changed  gulp-typescript gulp-sourcemaps gulp-plumber gulp-ruby-haml gulp-ruby-sass gulp-minify-css node-neat

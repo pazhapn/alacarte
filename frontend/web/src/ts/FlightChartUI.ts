@@ -5,20 +5,20 @@
 module Flights {
 	
 	export class LegLine{
-        public flightPosition: number;
-        public groundTime: String;
+        constructor(public flightPosition: number, public groundTime: String){}
     }
-    
+    		
+    export var lineGen:D3.Svg.Line;
 	export class FlightChartUI {
 		
 		private chartElements: { mainChartElem: any, 
 			leftAxisElem: any, leftScrubAxisElem: any, leftBrushElem: any, 
 			bottomAxisElem: any, bottomScrubAxisElem: any,	bottomBrushElem: any, 
 			rightAxisElem: any, rightBrushElem: any,			
-			topAxisElem: any, topScrubAxisElem: any,	topBrushElem: any};//,positionElem: any};	
+			topAxisElem: any, topScrubAxisElem: any, topBrushElem: any};	
 				
         private axis: {bottomAxis:D3.Svg.Axis, bottomScrubAxis: D3.Svg.Axis, leftAxis:D3.Svg.Axis, leftScrubAxis:D3.Svg.Axis, 
-			rightAxis:D3.Svg.Axis, topAxis:D3.Svg.Axis, topScrubAxis: D3.Svg.Axis};//, positionAxis:D3.Svg.Axis};
+			rightAxis:D3.Svg.Axis, topAxis:D3.Svg.Axis, topScrubAxis: D3.Svg.Axis, positionAxis:D3.Svg.Axis};
 			
 		private axisScale: {bottomScale:D3.Scale.TimeScale, bottomScrubScale: D3.Scale.TimeScale, 
 			leftScale:D3.Scale.QuantitiveScale, leftScrubScale:D3.Scale.QuantitiveScale, 
@@ -27,14 +27,41 @@ module Flights {
 			positionScale:D3.Scale.QuantitiveScale};	
 				
         private brush: {bottomBrush: D3.Svg.Brush, leftBrush: D3.Svg.Brush, rightBrush: D3.Svg.Brush, topBrush: D3.Svg.Brush};
-		
+
 		constructor(private chartNum: number) {	
 			this.initializeUIElements();
 		}
+		public redrawFlights(dim: number, extent): void {
+			var trips:Array<TripDetail> = itineraryChart.resize(dim, this.chartNum, extent);
+			var legs:Array<LegLine[]> = new Array<LegLine[]>();
+			for (var i = 0; i < trips.length; i++){
+				for(var sl =0; sl < trips[i].slices.length; sl++){
+					for(var seg = 0; seg < trips[i].slices[sl].segments.length; seg++){
+						for(var leg = 0; leg < trips[i].slices[sl].segments[seg].legs.length; leg++){
+							//console.log(trips[i].slices[sl].segments[seg].legs[leg]);
+							console.log(this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)));
+							console.log(this.axisScale.positionScale(i));
+							legs.push([new LegLine(i, trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin),
+									new LegLine(i, trips[i].slices[sl].segments[seg].legs[leg].arrivalTimeInOrigin)]);
+						}
+					}
+				}
+			}
+			var path = this.chartElements.mainChartElem.selectAll(".line").data(legs).attr("class","line");
+			path.enter().append("path")
+					.attr('d', lineGen)
+					.attr("class","line")
+					.style('stroke', 'green')
+					.style('stroke-width', 2)
+					.style('fill', 'none');
+			//path.transition().ease("linear").duration(250); 
+			path.exit().remove();
+		}
+		
 		public redrawAxis():void {    
 			//console.log('started creating ui elements ', axisData.dateAxisMinMaxList[this.chartNum]);
             //this.axisScale.left.domain([d3.min(this.flightResults.trips.tripOption, this.priceMinFn), d3.max(this.flightResults.trips.tripOption, this.priceMaxFn)]);  
-			this.axisScale.positionScale.domain([0,10]);          
+			this.axisScale.positionScale.domain([0,currentValues.listSize]);          
             this.axisScale.leftScale.domain([axisData.priceMin, axisData.priceMax]);
             this.chartElements.leftAxisElem.call(this.axis.leftAxis);
             this.axisScale.leftScrubScale.domain([axisData.priceMin, axisData.priceMax]);
@@ -68,8 +95,12 @@ module Flights {
 				.extent([parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax)]);
             this.chartElements.topBrushElem.call(this.brush.topBrush)
 				.selectAll("rect").attr("y", +(flightUIData.axisSize.topAxisSize)).attr("height", flightUIData.axisSize.topScrubAxisSize);
-            //console.log('finished creating ui elements');
-			lineGen = d3.svg.line().x((d: LegLine) => {return this.axisScale.bottomScale(d.groundTime);}).y((d: LegLine) => {return this.axisScale.positionScale(d.flightPosition);});
+			
+			lineGen = d3.svg.line()
+				.x((d: LegLine) => {return (flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
+												+this.axisScale.bottomScale(parseDate(d.groundTime));})
+				.y((d: LegLine) => {return (flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)
+												+0.9 * this.axisScale.positionScale(d.flightPosition + 1);});
         }
 			
 		public reCalculateUI(){	
@@ -132,7 +163,8 @@ module Flights {
 				rightAxis: d3.svg.axis().orient("right").scale(this.axisScale.rightScale).tickFormat(d3.format("s")),
 				//topAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScale).tickFormat(d3.time.format("%d %b %I %p %Z")), 
 				topAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScale).tickFormat((data) => moment(data).utcOffset(arrivalZone).format("h A Do")), 
-				topScrubAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScrubScale).tickFormat((data) => moment(data).utcOffset(arrivalZone).format("h A Do"))
+				topScrubAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScrubScale).tickFormat((data) => moment(data).utcOffset(arrivalZone).format("h A Do")),
+				positionAxis: d3.svg.axis().orient("right").scale(this.axisScale.positionScale)
 				};
 			this.brush = {
 				bottomBrush: d3.svg.brush()
@@ -159,20 +191,13 @@ module Flights {
 				topScrubAxisElem: drawArea.append("g"), 
 				topBrushElem: drawArea.append("g"),
 				topAxisElem: drawArea.append("g")};
+			//this.path = this.chartElements.mainChartElem.selectAll("path");
 		}	
 		
 		private brushed(brush: D3.Svg.Brush, scale: D3.Scale.Scale, dim: number): void{
 			var extent = brush.empty() ? scale.domain() : brush.extent();
 			//console.log("brushed ", extent);
-			var data = itineraryChart.resize(dim, this.chartNum, extent);
-			for(){
-				
-			}            
-			var a = this.chartElements.mainChartElem.append('path');
-					a.attr('d', lineGen(data))
-					.attr('stroke', 'green')
-					.attr('stroke-width', 2)
-					.attr('fill', 'none');
+			this.redrawFlights(dim, extent);
 		}
 	}
 }
