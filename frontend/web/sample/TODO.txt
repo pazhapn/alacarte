@@ -6,3 +6,5 @@
 1. provide carrier symbol/flag and color for flight duration bars.
 2. provide vertical grid lines.  
 3. indicate day and night in axis
+
+add more
