@@ -12,18 +12,18 @@ module Flights {
 	export class FlightChartUI {
 		
 		private chartElements: { mainChartElem: any, 
-			leftAxisElem: any, leftScrubAxisElem: any, leftBrushElem: any, 
-			bottomAxisElem: any, bottomScrubAxisElem: any,	bottomBrushElem: any, 
+			leftAxisElem: any, leftBrushElem: any, 
+			bottomAxisElem: any, bottomBrushElem: any, 
 			rightAxisElem: any, rightBrushElem: any,			
-			topAxisElem: any, topScrubAxisElem: any, topBrushElem: any};	
+			topAxisElem: any, topBrushElem: any};	
 				
-        private axis: {bottomAxis:D3.Svg.Axis, bottomScrubAxis: D3.Svg.Axis, leftAxis:D3.Svg.Axis, leftScrubAxis:D3.Svg.Axis, 
-			rightAxis:D3.Svg.Axis, topAxis:D3.Svg.Axis, topScrubAxis: D3.Svg.Axis, positionAxis:D3.Svg.Axis};
+        private axis: {bottomAxis:D3.Svg.Axis, leftAxis:D3.Svg.Axis, rightAxis:D3.Svg.Axis, 
+			topAxis:D3.Svg.Axis, positionAxis:D3.Svg.Axis};
 			
-		private axisScale: {bottomScale:D3.Scale.TimeScale, bottomScrubScale: D3.Scale.TimeScale, 
-			leftScale:D3.Scale.QuantitiveScale, leftScrubScale:D3.Scale.QuantitiveScale, 
+		private axisScale: {bottomScale:D3.Scale.TimeScale,  
+			leftScale:D3.Scale.QuantitiveScale, 
 			rightScale:D3.Scale.QuantitiveScale,
-			topScale:D3.Scale.TimeScale, topScrubScale: D3.Scale.TimeScale, 
+			topScale:D3.Scale.TimeScale,  
 			positionScale:D3.Scale.QuantitiveScale};	
 				
         private brush: {bottomBrush: D3.Svg.Brush, leftBrush: D3.Svg.Brush, rightBrush: D3.Svg.Brush, topBrush: D3.Svg.Brush};
@@ -65,17 +65,12 @@ module Flights {
 		}
 		
 		public redrawAxis():void {    
-			//console.log('started creating ui elements ', axisData.dateAxisMinMaxList[this.chartNum]);
-            //this.axisScale.left.domain([d3.min(this.flightResults.trips.tripOption, this.priceMinFn), d3.max(this.flightResults.trips.tripOption, this.priceMaxFn)]);  
-			this.axisScale.positionScale.domain([0,currentValues.listSize]);          
+			this.axisScale.positionScale.domain([0,currentValues.listSize]); 
+			         
             this.axisScale.leftScale.domain([axisData.priceMin, axisData.priceMax]);
-            this.chartElements.leftAxisElem.call(this.axis.leftAxis);
-            this.axisScale.leftScrubScale.domain([axisData.priceMin, axisData.priceMax]);
-            this.chartElements.leftScrubAxisElem.call(this.axis.leftScrubAxis);            
-			this.brush.leftBrush.y(this.axisScale.leftScrubScale)
-				.extent([axisData.priceMin, axisData.priceMax]);
-            this.chartElements.leftBrushElem.call(this.brush.leftBrush)
-				.selectAll("rect").attr("x", 0).attr("width", flightUIData.axisSize.leftScrubAxisSize);
+            this.chartElements.leftAxisElem.call(this.axis.leftAxis);         
+			this.brush.leftBrush.y(this.axisScale.leftScale).extent([axisData.priceMin, axisData.priceMax]);
+            this.chartElements.leftBrushElem.call(this.brush.leftBrush).selectAll("rect").attr("x", 0).attr("width", flightUIData.axisSize.leftAxisSize);
 				
 			this.axisScale.rightScale.domain([axisData.dateAxisMinMaxList[this.chartNum].durationMin, axisData.dateAxisMinMaxList[this.chartNum].durationMax]);
             this.chartElements.rightAxisElem.call(this.axis.rightAxis);          
@@ -84,120 +79,93 @@ module Flights {
             this.chartElements.rightBrushElem.call(this.brush.rightBrush)
 				.selectAll("rect").attr("x", (flightUIData.chartSize.width - flightUIData.axisSize.rightAxisSize)).attr("width", flightUIData.axisSize.rightAxisSize);
 				
-            this.axisScale.bottomScale.domain([parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMinFullChart), parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMaxFullChart)]);
+            this.axisScale.bottomScale.domain([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMinFullChart), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMaxFullChart), 30)]);
             this.chartElements.bottomAxisElem.call(this.axis.bottomAxis);
-            this.axisScale.bottomScrubScale.domain([parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax)]);
-            this.chartElements.bottomScrubAxisElem.call(this.axis.bottomScrubAxis);
-			this.brush.bottomBrush.x(this.axisScale.bottomScrubScale)
-				.extent([parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax)]);
+            this.brush.bottomBrush.x(this.axisScale.bottomScale)
+				.extent([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30)]);
             this.chartElements.bottomBrushElem.call(this.brush.bottomBrush)
-				.selectAll("rect").attr("y", +(flightUIData.chartSize.height - flightUIData.axisSize.bottomAxisSize)).attr("height", flightUIData.axisSize.bottomScrubAxisSize);
+				.selectAll("rect").attr("y", +(flightUIData.chartSize.height - flightUIData.axisSize.bottomAxisSize)).attr("height", flightUIData.axisSize.bottomAxisSize);
 				
-			this.axisScale.topScale.domain([parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMinFullChart), parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMaxFullChart)]);
+			this.axisScale.topScale.domain([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMinFullChart), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMaxFullChart), 30)]);
             this.chartElements.topAxisElem.call(this.axis.topAxis);
-            this.axisScale.topScrubScale.domain([parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax)]);
-            this.chartElements.topScrubAxisElem.call(this.axis.topScrubAxis);
-			this.brush.topBrush.x(this.axisScale.topScrubScale)
-				.extent([parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax)]);
+            this.brush.topBrush.x(this.axisScale.topScale)
+				.extent([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax), 30)]);
             this.chartElements.topBrushElem.call(this.brush.topBrush)
-				.selectAll("rect").attr("y", +(flightUIData.axisSize.topAxisSize)).attr("height", flightUIData.axisSize.topScrubAxisSize);
+				.selectAll("rect").attr("y", +(flightUIData.axisSize.topAxisSize)).attr("height", flightUIData.axisSize.topAxisSize);
 			
 			lineGen = d3.svg.line()
-				.x((d: LegLine) => {return (flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
+				.x((d: LegLine) => {return flightUIData.axisSize.leftAxisSize
 												+this.axisScale.bottomScale(parseDate(d.groundTime));})
-				.y((d: LegLine) => {return (flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)
-												+0.9 * this.axisScale.positionScale(d.flightPosition + 1);});
+				.y((d: LegLine) => {return flightUIData.axisSize.topAxisSize + (0.9 * this.axisScale.positionScale(d.flightPosition + 1));});
         }
 			
 		public reCalculateUI(){	
 			this.calculateSvg();
 			this.calculateAxis();
 		}
+		
+		private chartDate(date: Date, minutes: number): Date{
+			return new Date(date.getTime() + minutes*60000);
+		}
 		private calculateSvg(): void {
 			console.log('calculate svg elements ', this.chartNum);	
 			this.chartElements.mainChartElem.attr("width", flightUIData.chartSize.width).attr("height", flightUIData.chartSize.height);
 			
 			this.chartElements.bottomAxisElem.attr("class", "x axis")			
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
-					+" ,"+(flightUIData.chartSize.height -flightUIData.axisSize.bottomScrubAxisSize - flightUIData.axisSize.bottomAxisSize)+")");
-			this.chartElements.bottomScrubAxisElem.attr("class", "x axis")
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
-					+" ,"+(flightUIData.chartSize.height - flightUIData.axisSize.bottomScrubAxisSize)+")");
+				.attr("transform", "translate("+flightUIData.axisSize.leftAxisSize
+					+" ,"+(flightUIData.chartSize.height - flightUIData.axisSize.bottomAxisSize)+")");
 			this.chartElements.bottomBrushElem.attr("class", "x brush")
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)+")");
+				.attr("transform", "translate("+flightUIData.axisSize.leftAxisSize+")");
 				
 			this.chartElements.leftAxisElem.attr("class", "y axis")
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)+" ,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
-			this.chartElements.leftScrubAxisElem.attr("class", "y axis")
-				.attr("transform", "translate("+flightUIData.axisSize.leftScrubAxisSize+" ,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate("+flightUIData.axisSize.leftAxisSize+" ,"+flightUIData.axisSize.topAxisSize+")");
 			this.chartElements.leftBrushElem.attr("class", "y brush")
-				.attr("transform", "translate(0,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate(0,"+flightUIData.axisSize.topAxisSize+")");
 					
 			this.chartElements.rightAxisElem.attr("class", "y axis")
-				.attr("transform", "translate("+(flightUIData.chartSize.width - flightUIData.axisSize.rightAxisSize)+" ,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate("+(flightUIData.chartSize.width - flightUIData.axisSize.rightAxisSize)+" ,"+flightUIData.axisSize.topAxisSize+")");
 			this.chartElements.rightBrushElem.attr("class", "y brush")
-				.attr("transform", "translate(0,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate(0,"+flightUIData.axisSize.topAxisSize+")");
 				
 			this.chartElements.topAxisElem.attr("class", "x axis")			
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
-					+" ,"+(flightUIData.axisSize.topAxisSize+flightUIData.axisSize.topScrubAxisSize)+")");
-			this.chartElements.topScrubAxisElem.attr("class", "x axis")
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)
-					+" ,"+(flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate("+flightUIData.axisSize.leftAxisSize
+					+" ,"+flightUIData.axisSize.topAxisSize+")");
 			this.chartElements.topBrushElem.attr("class", "x brush")
-				.attr("transform", "translate("+(flightUIData.axisSize.leftScrubAxisSize+flightUIData.axisSize.leftAxisSize)+", "+(-flightUIData.axisSize.topScrubAxisSize)+")");
+				.attr("transform", "translate("+flightUIData.axisSize.leftAxisSize+", "+(-flightUIData.axisSize.topAxisSize)+")");
 		}
 		
 		private calculateAxis(): void {
-			//console.log('calculate axis elements ');
 			this.axisScale = {
 				bottomScale: d3.time.scale().range([0, flightUIData.chartSize.xScaleWidth]), 
-				bottomScrubScale: d3.time.scale().range([0, flightUIData.chartSize.xScaleWidth]),  
 				leftScale: d3.scale.linear().range([0, flightUIData.chartSize.yScaleHeight]),
-				leftScrubScale: d3.scale.linear().range([0, flightUIData.chartSize.yScaleHeight]),  
 				rightScale: d3.scale.linear().range([0, flightUIData.chartSize.yScaleHeight]),
 				topScale: d3.time.scale().range([0, flightUIData.chartSize.xScaleWidth]), 
-				topScrubScale: d3.time.scale().range([0, flightUIData.chartSize.xScaleWidth]),
 				positionScale: d3.scale.linear().range([0, flightUIData.chartSize.yScaleHeight]) 
 				}
 			this.axis = {
-				//bottomAxis: d3.svg.axis().orient("bottom").scale(this.axisScale.bottomScale).tickFormat(d3.time.format("%d %b %I %p")), 
 				bottomAxis: d3.svg.axis().orient("bottom").scale(this.axisScale.bottomScale).tickFormat((data) => moment(data).utcOffset(departZone).format("h A Do")),
-				bottomScrubAxis: d3.svg.axis().orient("bottom").scale(this.axisScale.bottomScrubScale).tickFormat((data) => moment(data).utcOffset(departZone).format("h A Do")), 
 				leftAxis: d3.svg.axis().orient("left").scale(this.axisScale.leftScale).tickFormat(d3.format("s")), 
-				leftScrubAxis: d3.svg.axis().orient("left").scale(this.axisScale.leftScrubScale).tickFormat(d3.format("s")), 
 				rightAxis: d3.svg.axis().orient("right").scale(this.axisScale.rightScale).tickFormat(d3.format("s")),
-				//topAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScale).tickFormat(d3.time.format("%d %b %I %p %Z")), 
 				topAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScale).tickFormat((data) => moment(data).utcOffset(arrivalZone).format("h A Do")), 
-				topScrubAxis: d3.svg.axis().orient("top").scale(this.axisScale.topScrubScale).tickFormat((data) => moment(data).utcOffset(arrivalZone).format("h A Do")),
 				positionAxis: d3.svg.axis().orient("right").scale(this.axisScale.positionScale)
 				};
 			this.brush = {
 				bottomBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.bottomBrush, this.axisScale.bottomScrubScale, dimType.departTimeDim)),
+					.on("brush", () => this.brushed(this.brush.bottomBrush, this.axisScale.bottomScale, dimType.departTimeDim)),
 				leftBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.leftBrush, this.axisScale.leftScrubScale, dimType.priceDim)),
+					.on("brush", () => this.brushed(this.brush.leftBrush, this.axisScale.leftScale, dimType.priceDim)),
 				rightBrush: d3.svg.brush()
 					.on("brush", () => this.brushed(this.brush.rightBrush, this.axisScale.rightScale, dimType.durationDim)),
 				topBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.topBrush, this.axisScale.topScrubScale, dimType.arrivalTimeDim))}				
+					.on("brush", () => this.brushed(this.brush.topBrush, this.axisScale.topScale, dimType.arrivalTimeDim))}				
 		}
 		private initializeUIElements(){
 			var drawArea = d3.select("#chartSection").append("div").attr("id", "chart"+this.chartNum).append("svg");
-			this.chartElements = {
-				mainChartElem: drawArea, 
-				leftAxisElem: drawArea.append("g"), 
-				leftScrubAxisElem: drawArea.append("g"), 
-				leftBrushElem: drawArea.append("g"), 
-				bottomAxisElem: drawArea.append("g"),
-				bottomScrubAxisElem: drawArea.append("g"), 
-				bottomBrushElem: drawArea.append("g"), 
-				rightAxisElem: drawArea.append("g"), 
-				rightBrushElem: drawArea.append("g"),
-				topScrubAxisElem: drawArea.append("g"), 
-				topBrushElem: drawArea.append("g"),
+			this.chartElements = {mainChartElem: drawArea, leftAxisElem: drawArea.append("g"), 
+				leftBrushElem: drawArea.append("g"), bottomAxisElem: drawArea.append("g"),
+				bottomBrushElem: drawArea.append("g"), rightAxisElem: drawArea.append("g"), 
+				rightBrushElem: drawArea.append("g"), topBrushElem: drawArea.append("g"),
 				topAxisElem: drawArea.append("g")};
-			//this.path = this.chartElements.mainChartElem.selectAll("path");
 		}	
 		
 		private brushed(brush: D3.Svg.Brush, scale: D3.Scale.Scale, dim: number): void{
