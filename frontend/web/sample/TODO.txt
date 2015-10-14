@@ -1,0 +1,8 @@
+1. provide limit and min gap for sliders.
+2. provide thick handle for sliders.
+3. disable click on slider.
+4. provide proper axis labels and markings.
+
+1. provide carrier symbol/flag and color for flight duration bars.
+2. provide vertical grid lines.  
+3. indicate day and night in axis
