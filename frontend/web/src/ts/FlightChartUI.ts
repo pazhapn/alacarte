@@ -5,7 +5,7 @@
 module Flights {
 	
 	export class LegLine{
-        constructor(public flightPosition: number, public groundTime: String){}
+        constructor(public id: String, public color: String, public flightPosition: number, public groundTime: String){}
     }
     		
     export var lineGen:D3.Svg.Line;
@@ -32,26 +32,32 @@ module Flights {
 			this.initializeUIElements();
 		}
 		public redrawFlights(dim: number, extent): void {
+			var color = d3.scale.category20();
 			var trips:Array<TripDetail> = itineraryChart.resize(dim, this.chartNum, extent);
 			var legs:Array<LegLine[]> = new Array<LegLine[]>();
+			var id: String;
+			var colorValue: String;
 			for (var i = 0; i < trips.length; i++){
+				colorValue = color(i);
 				for(var sl =0; sl < trips[i].slices.length; sl++){
 					for(var seg = 0; seg < trips[i].slices[sl].segments.length; seg++){
 						for(var leg = 0; leg < trips[i].slices[sl].segments[seg].legs.length; leg++){
 							//console.log(trips[i].slices[sl].segments[seg].legs[leg]);
-							console.log(this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)));
-							console.log(this.axisScale.positionScale(i));
-							legs.push([new LegLine(i, trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin),
-									new LegLine(i, trips[i].slices[sl].segments[seg].legs[leg].arrivalTimeInOrigin)]);
+							id = trips[i].tripId+""+sl+""+seg+""+leg;
+							console.log(id, i, this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)), this.axisScale.positionScale(i));
+							legs.push([new LegLine(id+""+this.axisScale.positionScale(i), colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin),
+									new LegLine(id+"1", colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].arrivalTimeInOrigin)]);
 						}
 					}
 				}
 			}
-			var path = this.chartElements.mainChartElem.selectAll(".line").data(legs).attr("class","line");
+			console.log("done");
+			var path = this.chartElements.mainChartElem.selectAll(".line").data(legs, (d:LegLine[]) => d[0].id).attr("class","line");
 			path.enter().append("path")
 					.attr('d', lineGen)
 					.attr("class","line")
-					.style('stroke', 'green')
+					.attr("id",(d:LegLine[]) => d[0].id)
+					.style('stroke', (d:LegLine[]) => d[0].color)
 					.style('stroke-width', 2)
 					.style('fill', 'none');
 			//path.transition().ease("linear").duration(250); 
