@@ -10,6 +10,10 @@ module Flights {
     		
     export var lineGen:D3.Svg.Line;
 	export class FlightChartUI {
+		private top:String = "t";
+		private bottom:String = "b";
+		private left:String = "l";
+		private right:String = "r";
 		
 		private chartElements: { mainChartElem: any, 
 			leftAxisElem: any, leftBrushElem: any, 
@@ -27,9 +31,11 @@ module Flights {
 			positionScale:D3.Scale.QuantitiveScale};	
 				
         private brush: {bottomBrush: D3.Svg.Brush, leftBrush: D3.Svg.Brush, rightBrush: D3.Svg.Brush, topBrush: D3.Svg.Brush};
-
+		private brushValues: {bottomCurrent: any[], leftCurrent: any[], rightCurrent: any[], topCurrent: any[]};
+		
 		constructor(private chartNum: number) {	
 			this.initializeUIElements();
+			this.brushValues = {bottomCurrent: [], leftCurrent: [], rightCurrent: [], topCurrent: []};
 		}
 		public redrawFlights(dim: number, extent): void {
 			var color = d3.scale.category20();
@@ -44,7 +50,7 @@ module Flights {
 						for(var leg = 0; leg < trips[i].slices[sl].segments[seg].legs.length; leg++){
 							//console.log(trips[i].slices[sl].segments[seg].legs[leg]);
 							id = trips[i].tripId+""+sl+""+seg+""+leg;
-							console.log(id, i, this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)), this.axisScale.positionScale(i));
+							//console.log(id, i, this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)), this.axisScale.positionScale(i));
 							legs.push([new LegLine(id+""+this.axisScale.positionScale(i), colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin),
 									new LegLine(id+"1", colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].arrivalTimeInOrigin)]);
 						}
@@ -69,27 +75,27 @@ module Flights {
 			         
             this.axisScale.leftScale.domain([axisData.priceMin, axisData.priceMax]);
             this.chartElements.leftAxisElem.call(this.axis.leftAxis);         
-			this.brush.leftBrush.y(this.axisScale.leftScale).extent([axisData.priceMin, axisData.priceMax]);
+			this.brush.leftBrush.y(this.axisScale.leftScale).extent(this.currentBrushValue(this.left));
             this.chartElements.leftBrushElem.call(this.brush.leftBrush).selectAll("rect").attr("x", 0).attr("width", flightUIData.axisSize.leftAxisSize);
 				
 			this.axisScale.rightScale.domain([axisData.dateAxisMinMaxList[this.chartNum].durationMin, axisData.dateAxisMinMaxList[this.chartNum].durationMax]);
             this.chartElements.rightAxisElem.call(this.axis.rightAxis);          
 			this.brush.rightBrush.y(this.axisScale.rightScale)
-				.extent([axisData.dateAxisMinMaxList[this.chartNum].durationMin, axisData.dateAxisMinMaxList[this.chartNum].durationMax]);
+				.extent(this.currentBrushValue(this.right));
             this.chartElements.rightBrushElem.call(this.brush.rightBrush)
 				.selectAll("rect").attr("x", (flightUIData.chartSize.width - flightUIData.axisSize.rightAxisSize)).attr("width", flightUIData.axisSize.rightAxisSize);
 				
             this.axisScale.bottomScale.domain([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMinFullChart), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMaxFullChart), 30)]);
             this.chartElements.bottomAxisElem.call(this.axis.bottomAxis);
             this.brush.bottomBrush.x(this.axisScale.bottomScale)
-				.extent([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30)]);
+				.extent(this.currentBrushValue(this.bottom));
             this.chartElements.bottomBrushElem.call(this.brush.bottomBrush)
 				.selectAll("rect").attr("y", +(flightUIData.chartSize.height - flightUIData.axisSize.bottomAxisSize)).attr("height", flightUIData.axisSize.bottomAxisSize);
 				
 			this.axisScale.topScale.domain([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMinFullChart), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMaxFullChart), 30)]);
             this.chartElements.topAxisElem.call(this.axis.topAxis);
             this.brush.topBrush.x(this.axisScale.topScale)
-				.extent([this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax), 30)]);
+				.extent(this.currentBrushValue(this.top));
             this.chartElements.topBrushElem.call(this.brush.topBrush)
 				.selectAll("rect").attr("y", +(flightUIData.axisSize.topAxisSize)).attr("height", flightUIData.axisSize.topAxisSize);
 			
@@ -151,14 +157,15 @@ module Flights {
 				};
 			this.brush = {
 				bottomBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.bottomBrush, this.axisScale.bottomScale, dimType.departTimeDim)),
+					.on("brush", () => this.brushed(this.brush.bottomBrush, this.bottom, this.axisScale.bottomScale, dimType.departTimeDim)),
 				leftBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.leftBrush, this.axisScale.leftScale, dimType.priceDim)),
+					.on("brush", () => this.brushed(this.brush.leftBrush, this.left, this.axisScale.leftScale, dimType.priceDim)),
 				rightBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.rightBrush, this.axisScale.rightScale, dimType.durationDim)),
+					.on("brush", () => this.brushed(this.brush.rightBrush, this.right, this.axisScale.rightScale, dimType.durationDim)),
 				topBrush: d3.svg.brush()
-					.on("brush", () => this.brushed(this.brush.topBrush, this.axisScale.topScale, dimType.arrivalTimeDim))}				
+					.on("brush", () => this.brushed(this.brush.topBrush, this.top, this.axisScale.topScale, dimType.arrivalTimeDim))}	
 		}
+		
 		private initializeUIElements(){
 			var drawArea = d3.select("#chartSection").append("div").attr("id", "chart"+this.chartNum).append("svg");
 			this.chartElements = {mainChartElem: drawArea, leftAxisElem: drawArea.append("g"), 
@@ -168,10 +175,101 @@ module Flights {
 				topAxisElem: drawArea.append("g")};
 		}	
 		
-		private brushed(brush: D3.Svg.Brush, scale: D3.Scale.Scale, dim: number): void{
-			var extent = brush.empty() ? scale.domain() : brush.extent();
-			//console.log("brushed ", extent);
-			this.redrawFlights(dim, extent);
+		
+		private currentBrushValue(brushType: String): any[]{
+			if(brushType === this.left){
+				if(this.brushValues.leftCurrent == null || this.brushValues.leftCurrent.length == 0){
+					this.brushValues.leftCurrent = [axisData.priceMin, axisData.priceMax];
+				}else if(this.brushValues.leftCurrent[0] < axisData.priceMin){
+					this.brushValues.leftCurrent[0] = axisData.priceMin;
+				}else if(this.brushValues.leftCurrent[1] > axisData.priceMax){
+					this.brushValues.leftCurrent[1] = axisData.priceMax;
+				}
+				return this.brushValues.leftCurrent;
+			}else if(brushType === this.right){
+				if(this.brushValues.rightCurrent == null || this.brushValues.rightCurrent.length == 0){
+					this.brushValues.rightCurrent = [axisData.dateAxisMinMaxList[this.chartNum].durationMin, axisData.dateAxisMinMaxList[this.chartNum].durationMax];
+				}else if(this.brushValues.rightCurrent[0] < axisData.dateAxisMinMaxList[this.chartNum].durationMin){
+					this.brushValues.rightCurrent[0] = axisData.dateAxisMinMaxList[this.chartNum].durationMin;
+				}else if(this.brushValues.rightCurrent[1] > axisData.dateAxisMinMaxList[this.chartNum].durationMax){
+					this.brushValues.rightCurrent[1] = axisData.dateAxisMinMaxList[this.chartNum].durationMax;
+				}
+				return this.brushValues.rightCurrent;
+			}else if(brushType === this.top){
+				if(this.brushValues.topCurrent == null || this.brushValues.topCurrent.length == 0){
+					this.brushValues.topCurrent = [this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax), 30)];
+				}else if(this.brushValues.topCurrent[0] < this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), -30)){
+					this.brushValues.topCurrent[0] = this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMin), -30);
+				}else if(this.brushValues.topCurrent[1] > this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax), 30)){
+					this.brushValues.topCurrent[1] = this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].arrivalMax), 30);
+				}
+				return this.brushValues.topCurrent;
+			}else if(brushType === this.bottom){
+				console.log("calling brush min max check ", this.brushValues.bottomCurrent[1], this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30));
+				if(this.brushValues.bottomCurrent == null || this.brushValues.bottomCurrent.length == 0){
+					this.brushValues.bottomCurrent = [this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), -30), this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30)];
+				}else if(this.brushValues.bottomCurrent[0] < this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), -30)){
+					this.brushValues.bottomCurrent[0] = this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMin), -30);
+				}else if(this.brushValues.bottomCurrent[1] > this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30)){
+					this.brushValues.bottomCurrent[1] = this.chartDate(parseDate(axisData.dateAxisMinMaxList[this.chartNum].departMax), 30);
+				}
+				return this.brushValues.bottomCurrent;
+			}
+			return [];
+		}
+		private collectCurrentValue(brushType: String): void{
+			if(brushType === this.left){
+				this.brushValues.leftCurrent = this.brush.leftBrush.extent();
+			}else if(brushType === this.right){
+				this.brushValues.rightCurrent = this.brush.rightBrush.extent();
+			}else if(brushType === this.top){
+				this.brushValues.topCurrent = this.brush.topBrush.extent();
+			}else if(brushType === this.bottom){
+				this.brushValues.bottomCurrent = this.brush.bottomBrush.extent();
+			}
+		}
+		private redrawBrush(brush: D3.Svg.Brush, brushType: String): boolean{ 
+			var brushChanged = true;
+			var brushExtent= brush.extent();
+			
+			if(brushExtent[0] == brushExtent[1]) brushChanged = false;
+			
+			if(!brushChanged) {
+				brushExtent = this.currentBrushValue(brushType);
+				brush.extent(brushExtent);
+				console.log("calling brush reset ", brushExtent[0], brushExtent[1]);
+				if(brushType === this.left){
+					this.chartElements.leftBrushElem.call(this.brush.leftBrush);
+				}else if(brushType === this.right){
+					this.chartElements.rightBrushElem.call(this.brush.rightBrush);
+				}else if(brushType === this.top){
+					this.chartElements.topBrushElem.call(this.brush.topBrush);
+				}else if(brushType === this.bottom){
+					this.chartElements.bottomBrushElem.call(this.brush.bottomBrush);
+				}
+			}
+			this.collectCurrentValue(brushType);
+			return brushChanged;
+		}
+		private isBrushChanged(brush: D3.Svg.Brush, brushType: String, scale: D3.Scale.Scale): boolean{
+			var brushChanged = true;
+			var brushExtent= brush.extent();
+			
+			if(brushExtent[0] == brushExtent[1]) brushChanged = false;
+			
+			return brushChanged;
+		}
+		private brushed(brush: D3.Svg.Brush, brushType: String, scale: D3.Scale.Scale, dim: number): void{
+			console.log("brushed start ", brush.extent());
+			var brushChanged = this.isBrushChanged(brush, brushType, scale);
+			//var brushChanged = this.redrawBrush(brush, brushType);
+			console.log("brushed end ", brush.extent());
+			if(brushChanged) {
+				console.log("brushed redrawFlights ", brush.extent());
+				this.redrawFlights(dim, brush.extent());
+			}else{
+				//TODO redraw brush
+			}
 		}
 	}
 }
