@@ -68,7 +68,8 @@ module Flights {
 		private initializeUIElements(){
 			flightUIData.sectionElements = {listSection: $("#listSection"), chartSection: $("#chartSection")};
 			listElement = d3.select("#flights-list");
-			flightUIData.axisSize = {bottomAxisSize: 25, leftAxisSize: 25, topAxisSize: 25, rightAxisSize: 50};
+			flightUIData.brushSize = {bottomBrushSize: 25, leftBrushSize: 25, topBrushSize: 25, rightBrushSize: 25};
+			flightUIData.axisSize = {bottomAxisSize: 25, leftAxisSize: 50, topAxisSize: 25, rightAxisSize: 25};
 			flightUIData.sectionSize = {listWidthMinPixel:200, listWidthMinPercent: 33, chartWidthMinPixel:800}
 		}	
 	}
