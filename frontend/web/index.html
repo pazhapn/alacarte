@@ -42,20 +42,29 @@
 		    crossfilter: [
 		      '/static/lib/crossfilter' 
 		    ],
+		    nunj: [
+		      '/static/lib/nunjucks-slim.min' 
+		    ],
+		    templates: [
+			  '/static/views/sample' 
+		    ],
 		    app: [
-		      '/static/scripts/app.un' 
+		      '/static/scripts/app.un'
 		    ]
 		  },
 		  shim: {
 		    d3: ['jquery'],
 			moment: {deps:['jquery'], exports: "moment"},
 			momenttimezone:['moment'],
-			app:['d3','moment','momenttimezone']
+			app:['d3','moment','momenttimezone','nunj', 'templates']
 		  }
 		});
 		//  requirejs(["app"]);
-		requirejs(['jquery', 'd3', 'moment', 'momenttimezone', 'crossfilter', 'app'], function($, d3, moment, timezone, crossfilter, app) {
+		requirejs(['jquery', 'd3', 'moment', 'momenttimezone', 'crossfilter', 'nunj', 'app'], 
+			function($, d3, moment, timezone, crossfilter, nunj, app) {				
 			$( document ).ready(function() {
+				//var env = nunj.configure('/static/views', { autoescape: true });
+				console.log(nunjucks.render('sample.nunj', {'username':'some one'}));
 				console.log(moment().format('dddd, MMMM Do YYYY, h:mm:ss a'));
 				//console.log('registering Datas '+requestId);
 		      var flightController = new Flights.FlightController();

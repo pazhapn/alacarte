@@ -4,6 +4,7 @@ var gulp = require('gulp'), clean = require('gulp-clean'), include = require('gu
   typescript = require("gulp-typescript"), sourcemaps = require("gulp-sourcemaps"),
   plumber = require('gulp-plumber'), haml = require('gulp-ruby-haml'), sass = require('gulp-sass'),
   minifyCSS = require('gulp-minify-css'), neat = require('node-neat').includePaths,
+  nunjucks = require('gulp-nunjucks'), 
   tsPath = ['src/ts/**/*.ts'], jsPath = ['src/js/site/*.js'], sassPath = 'src/scss/',
   requirePath = 'src/require/*.js', compilePath = 'build/', cssCompilePath = compilePath + 'css',
   jsCompilePath = compilePath + 'js', connect = require('gulp-connect'),
@@ -85,7 +86,14 @@ gulp.task('typescript', function() {
   });
 });
 
+gulp.task('nunjucks', function () {
+    return gulp.src('src/templates/*.nunj')
+        .pipe(nunjucks())
+        .pipe(gulp.dest('static/views/'));
+});
+
 gulp.task('watch', function() {
+  gulp.watch('src/templates/*.nunj', ['nunjucks']);
   gulp.watch(tsPath, ['typescript']);
   //gulp.watch(jsPath, ['js']);
   gulp.watch(cssCompilePath, ['css']);
@@ -102,4 +110,4 @@ gulp.task('webserver', function() {
 
 //gulp.task('default', ['traceur', 'babel', 'watch']);
 //gulp.task('default', ['watch', 'typescript', 'js', 'sass', 'require']);
-gulp.task('default', ['watch', 'typescript', 'sass', 'require','webserver']);
+gulp.task('default', ['watch', 'typescript', 'sass', 'require','webserver', 'nunjucks']);
