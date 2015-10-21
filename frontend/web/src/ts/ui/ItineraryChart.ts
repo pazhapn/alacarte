@@ -20,7 +20,7 @@ module Flights {
             }
         }
         public resize(dim: number, slicePos: number, extent): Array<TripDetail>{
-            console.log("resize ",dim, slicePos, extent);
+            //console.log("resize ",dim, slicePos, extent);
             if(extent != null){
                 if(dim == dimType.departTimeDim){
                     this.sliceCharts[slicePos].departDim.filterRange(extent);
@@ -36,15 +36,9 @@ module Flights {
         }
 		
         private renderList(): Array<TripDetail> {
-            console.log("renderList ",currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
+            //console.log("renderList ",currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
             //console.log("renderList ",this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos));
-            var trips = this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
-            var flightsList = listElement.selectAll(".flight")
-                .data(trips, function (d) { return d.tripId; });
-            flightsList.enter().append("div").attr("class", "flight").html((d) => d.html);
-            flightsList.exit().remove();
-            flightsList.order();
-            return trips;
+            return this.getList(currentValues.listBy, currentValues.orderBy, currentValues.listSize, currentValues.slicePos);
         }
         
         private getList(listBy:number, orderBy:number, listSize: number, slicePos: number): Array<TripDetail> {

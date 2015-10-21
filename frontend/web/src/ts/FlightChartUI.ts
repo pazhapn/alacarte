@@ -1,5 +1,6 @@
 /// <reference path="../defi/jquery.d.ts"/>
 /// <reference path="../defi/d3.d.ts"/>
+/// <reference path="../defi/nunjuckjs.d.ts"/>
 /// <reference path="../defi/moment-timezone/moment-timezone.d.ts"/>
 
 module Flights {
@@ -9,6 +10,8 @@ module Flights {
     }
     		
     export var lineGen:D3.Svg.Line;
+	declare var nunjuckjs;
+	
 	export class FlightChartUI {
 		private top:String = "t";
 		private bottom:String = "b";
@@ -55,11 +58,11 @@ module Flights {
 							//console.log(id, i, this.axisScale.bottomScale(parseDate(trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin)), this.axisScale.positionScale(i));
 							legs.push([new LegLine(id+""+this.axisScale.positionScale(i), colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].departTimeInOrigin),
 									new LegLine(id+"1", colorValue, i, trips[i].slices[sl].segments[seg].legs[leg].arrivalTimeInOrigin)]);
+							console.log();
 						}
 					}
 				}
 			}
-			console.log("done");
 			var path = this.chartElements.mainChartElem.selectAll(".line").data(legs, (d:LegLine[]) => d[0].id).attr("class","line");
 			path.enter().append("path")
 					.attr('d', lineGen)
@@ -70,6 +73,12 @@ module Flights {
 					.style('fill', 'none');
 			//path.transition().ease("linear").duration(250); 
 			path.exit().remove();
+			//path.order();
+			var flightsList = listElement.selectAll(".flight")
+                .data(trips, function (d) { return d.tripId; });
+            flightsList.enter().append("div").attr("class", "flight").html((d) => nunjucks.render('sample.nunj', {'username':d.tripId}));
+            flightsList.exit().remove();
+            flightsList.order();            
 		}
 		
 		public redrawAxis():void {    
@@ -327,12 +336,12 @@ module Flights {
 			return brushChanged;
 		}
 		private brushed(brush: D3.Svg.Brush, brushType: String, scale: D3.Scale.Scale, dim: number): void{
-			console.log("brushed start ", brush.extent());
+			//console.log("brushed start ", brush.extent());
 			var brushChanged = this.isBrushChanged(brush, brushType, scale);
 			//var brushChanged = this.redrawBrush(brush, brushType);
-			console.log("brushed end ", brush.extent());
+			//console.log("brushed end ", brush.extent());
 			if(brushChanged) {
-				console.log("brushed redrawFlights ", brush.extent());
+				//console.log("brushed redrawFlights ", brush.extent());
 				this.setPreviousValue(brushType);
 				this.redrawFlights(dim, brush.extent());
 			}else{
