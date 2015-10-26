@@ -1,6 +1,6 @@
 /// <reference path="../defi/jquery.d.ts"/>
 /// <reference path="../defi/d3.d.ts"/>
-/// <reference path="../defi/nunjuckjs.d.ts"/>
+/// <reference path="../defi/nunjucks.d.ts"/>
 /// <reference path="../defi/moment-timezone/moment-timezone.d.ts"/>
 
 module Flights {
@@ -76,7 +76,7 @@ module Flights {
 			//path.order();
 			var flightsList = listElement.selectAll(".flight")
                 .data(trips, function (d) { return d.tripId; });
-            flightsList.enter().append("div").attr("class", "flight").html((d) => nunjucks.render('sample.nunj', {'username':d.tripId}));
+            flightsList.enter().append("div").attr("class", "flight").html((d) => nunjucks.render('flight-small.nunj', {'username':d.tripId}));
             flightsList.exit().remove();
             flightsList.order();            
 		}

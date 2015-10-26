@@ -1,7 +1,7 @@
-declare module NunjuckJS {
+declare module NunjucksModule {
     interface Nunjucks {
         render(template: any, modelData: any): any;
     }
 }
 
-declare var nunjucks : NunjuckJS.Nunjucks;
+declare var nunjucks : NunjucksModule.Nunjucks;

@@ -1,7 +1,15 @@
 <!DOCTYPE html>
-<head>
-	<meta charset="utf-8">
-	<link rel="stylesheet" href="/static/css/styles.css">
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="static/bs/css/bootstrap.min.css">
+	
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="static/bs/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="static/css/styles.css">
 	<script>
 		var requestId = "fewsfdfwer";		
 	</script>
@@ -9,7 +17,7 @@
 <body>
 	<div>
 		<div id="listSection" style="float:left;display: block;">
-			<div id="flights-list">
+			<div id="flights-list"  class="list-group">
 			</div>
 		</div>
 		<div id="chartSection" style="float:right;display: block;">
@@ -46,7 +54,10 @@
 		      '/static/lib/nunjucks-slim.min' 
 		    ],
 		    templates: [
-			  '/static/views/sample' 
+			  '/static/views/templates.min' 
+		    ],
+		    bootstrap: [
+		      '/static/bs/js/bootstrap.min' 
 		    ],
 		    app: [
 		      '/static/scripts/app.un'
@@ -56,15 +67,14 @@
 		    d3: ['jquery'],
 			moment: {deps:['jquery'], exports: "moment"},
 			momenttimezone:['moment'],
-			app:['d3','moment','momenttimezone','nunj', 'templates']
+			app:['d3','moment','momenttimezone','nunj', 'templates', 'bootstrap']
 		  }
 		});
 		//  requirejs(["app"]);
-		requirejs(['jquery', 'd3', 'moment', 'momenttimezone', 'crossfilter', 'nunj', 'app'], 
-			function($, d3, moment, timezone, crossfilter, nunj, app) {				
+		requirejs(['jquery', 'd3', 'moment', 'momenttimezone', 'crossfilter', 'nunj', 'app', 'bootstrap'], 
+			function($, d3, moment, timezone, crossfilter, nunj, app, bootstrap) {				
 			$( document ).ready(function() {
 				//var env = nunj.configure('/static/views', { autoescape: true });
-				console.log(nunjucks.render('sample.nunj', {'username':'some one'}));
 				console.log(moment().format('dddd, MMMM Do YYYY, h:mm:ss a'));
 				//console.log('registering Datas '+requestId);
 		      var flightController = new Flights.FlightController();

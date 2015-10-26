@@ -4,8 +4,9 @@ var gulp = require('gulp'), clean = require('gulp-clean'), include = require('gu
   typescript = require("gulp-typescript"), sourcemaps = require("gulp-sourcemaps"),
   plumber = require('gulp-plumber'), haml = require('gulp-ruby-haml'), sass = require('gulp-sass'),
   minifyCSS = require('gulp-minify-css'), neat = require('node-neat').includePaths,
-  nunjucks = require('gulp-nunjucks'), 
-  tsPath = ['src/ts/**/*.ts'], jsPath = ['src/js/site/*.js'], sassPath = 'src/scss/',
+  bourbon = require('node-bourbon').includePaths, nunjucks = require('gulp-nunjucks'), 
+  minifyCss = require('gulp-minify-css'),
+  tsPath = ['src/ts/**/*.ts'], jsPath = ['src/js/site/*.js'], sassPath = 'src/sass/**/*.scss',
   requirePath = 'src/require/*.js', compilePath = 'build/', cssCompilePath = compilePath + 'css',
   jsCompilePath = compilePath + 'js', connect = require('gulp-connect'),
   delFiles = [compilePath, 'static/scripts/*.min.js', compilePath+'css'];
@@ -17,15 +18,20 @@ gulp.task('clean', function() {
     .pipe(clean());
 });
 gulp.task('sass', function() {
-  return gulp.src('src/sass/**/*.scss')
+  return gulp.src(sassPath)
   .pipe(plumber())
+  .pipe(sass({
+      // includePaths: require('node-bourbon').with('other/path', 'another/path') 
+      // - or - 
+      includePaths: require('node-neat').includePaths
+      //outputStyle: 'compressed'
+    }))
   .pipe(sourcemaps.init())
-  .pipe(sass())
   .pipe(concat('app.un.css'))
   .pipe(sourcemaps.write())
   .pipe(gulp.dest('static/css'))
   .pipe(rename('app.min.css'))
-  .pipe(uglify())
+  .pipe(minifyCss())
   .pipe(gulp.dest('static/css'))
   .pipe(plumber.stop())
   .pipe(connect.reload())
@@ -87,9 +93,21 @@ gulp.task('typescript', function() {
 });
 
 gulp.task('nunjucks', function () {
-    return gulp.src('src/templates/*.nunj')
-        .pipe(nunjucks())
-        .pipe(gulp.dest('static/views/'));
+  return gulp.src('src/templates/*.nunj')
+  .pipe(plumber())
+  .pipe(nunjucks())
+  .pipe(gulp.dest('static/work-views'))
+  .pipe(concat('templates.un.js'))
+  .pipe(sourcemaps.write())
+  .pipe(gulp.dest('static/views'))
+  .pipe(rename('templates.min.js'))
+  .pipe(uglify())
+  .pipe(gulp.dest('static/views'))
+  .pipe(plumber.stop())
+  .pipe(connect.reload())
+  .on('error', function (err) {
+    console.error('Error', err.message);
+  });
 });
 
 gulp.task('watch', function() {
@@ -97,7 +115,7 @@ gulp.task('watch', function() {
   gulp.watch(tsPath, ['typescript']);
   //gulp.watch(jsPath, ['js']);
   gulp.watch(cssCompilePath, ['css']);
-  gulp.watch(sassPath+"*.scss", ['sass']);
+  gulp.watch(sassPath, ['sass']);
   gulp.watch(requirePath, ['require']);
 });
 
