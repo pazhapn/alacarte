@@ -3,20 +3,20 @@
 /// <reference path="../models/FlightModels.ts"/>
 
 module Flights {  
-    export class ItineraryChart{
+    export class ItineraryData{
         
 		private filter: CrossFilter.CrossFilter<TripDetail>;
         private all: CrossFilter.GroupAll<TripDetail>;
         private priceDim: CrossFilter.Dimension<TripDetail, number>;
-        private sliceCharts: SliceChart[];
+        private sliceCharts: SliceData[];
         
         constructor(public trips: Array<TripDetail>){
             this.filter = crossfilter<TripDetail>(trips);
             this.all = this.filter.groupAll();
             this.priceDim = this.filter.dimension((trip) => trip.saleTotal);
-            this.sliceCharts = new Array<SliceChart>(trips[0].slices.length);
+            this.sliceCharts = new Array<SliceData>(trips[0].slices.length);
             for(var i=0; i < trips[0].slices.length; i++){
-                this.sliceCharts[i] = new SliceChart(i, this.filter);
+                this.sliceCharts[i] = new SliceData(i, this.filter);
             }
         }
         public resize(dim: number, slicePos: number, extent): Array<TripDetail>{
@@ -58,7 +58,7 @@ module Flights {
             }
         }
     }
-    export class SliceChart {
+    export class SliceData {
         public durationDim: CrossFilter.Dimension<TripDetail, number>;
         public departDim: CrossFilter.Dimension<TripDetail, Date>;
         public arrivalDim: CrossFilter.Dimension<TripDetail, Date>;

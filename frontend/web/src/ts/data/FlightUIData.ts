@@ -1,5 +1,5 @@
-/// <reference path="../defi/jquery.d.ts"/>
-/// <reference path="../defi/d3.d.ts"/>
+/// <reference path="../../defi/jquery.d.ts"/>
+/// <reference path="../../defi/d3.d.ts"/>
 
 module Flights {
 	export class FlightUIData {
