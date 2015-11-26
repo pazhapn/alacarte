@@ -1,10 +1,10 @@
 /// <reference path="../defi/jquery.d.ts"/>
 /// <reference path="../defi/d3.d.ts"/>
-/// <reference path="FlightUIData.ts"/>
+/// <reference path="data/FlightUIData.ts"/>
 /// <reference path="FlightChartUI.ts"/>
 
 module Flights {
-	export class FlightScreenUI {	
+	export class FullScreenFlightUI {	
 		private flightChartUIs: FlightChartUI[];
 			
 		constructor() {	

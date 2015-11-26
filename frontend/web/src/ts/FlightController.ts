@@ -2,10 +2,10 @@
 /// <reference path="../defi/jquery.d.ts"/>
 /// <reference path="../defi/d3.d.ts"/>
 /// <reference path="../defi/moment-timezone/moment-timezone.d.ts"/>
-/// <reference path="FlightScreenUI.ts"/>
-/// <reference path="FlightUIData.ts"/>
+/// <reference path="data/FlightUIData.ts"/>
+/// <reference path="data/ItineraryData.ts"/>
+/// <reference path="FullScreenFlightUI.ts"/>
 /// <reference path="FlightChartUI.ts"/>
-/// <reference path="ui/ItineraryChart.ts"/>
 
 define(function (require) {
     moment = require("moment");
@@ -16,7 +16,7 @@ declare var requestId: string;
 module Flights {
     
     export var listElement: D3.Selection = null;
-	export var itineraryChart: ItineraryChart = null;
+	export var itineraryChart: ItineraryData = null;
     export var axisData: AxisData = null;
 	export var parseDate = null;        
         
@@ -29,37 +29,51 @@ module Flights {
     
 	export var flightUIData:FlightUIData;
 		
-    
+    /**
+     * FlightController getFlight() is the starting point for the flight search GUI screen
+     * 
+     */
     export class FlightController {
-        private ui: FlightScreenUI = null;
+        private fullScreen: FullScreenFlightUI = null;
         
         constructor() {
             parseDate =d3.time.format("%Y-%m-%dT%H:%M%Z").parse;
             currentValues = {listBy: listByConds.price, orderBy: orderByConds.asc, listSize: 10, slicePos: 0}
             flightUIData = new FlightUIData();
-            this.ui = new FlightScreenUI();
+            this.fullScreen = new FullScreenFlightUI();
         }
-        
-        public getFlights(formData: string): void {       
-            console.log("retrieving requestId "+requestId);     
-            var url: string = "/static/backend.json";
+        /**
+         * requestId is used for getting the previously submitted request results to appear in the 
+         * current screen. could use diff mechanism in future, in case all are done in SPA
+         * 
+         * 1. once the results are received, we create slice & dice crossfilter data in ItineraryData 
+         */
+        public getFlights(): void {       
+            console.log("retrieving requestId "+requestId);   
+            //var url: string = "/static/backend.json?requestId="+requestId+;  
+            var url: string = "/static/backend.json";//hard coded for dev purpose
             $.ajax({
                 method: "GET",
                 url: url,
                 dataType: 'json',
                 success: (data) => {  
                     axisData = (<FlightSearchResults> data).axisData;
-                    console.log("now ",moment.version);
-                    departZone = moment.parseZone(axisData.dateAxisMinMaxList[0].departMin).utcOffset();
-                    arrivalZone = moment.parseZone(axisData.dateAxisMinMaxList[0].arrivalMax).utcOffset();
-                    console.log(departZone, arrivalZone);
-                    itineraryChart = new ItineraryChart((<FlightSearchResults> data).itineraryResults.trips);
-                    this.ui.initializeCharts((<FlightSearchResults> data).itineraryResults.trips);
-                    //itineraryChart.renderList();
-                    //itineraryChart.resize(0, 0, null);
-                    data = null;                    
+                    this.calculateZones();
+                    itineraryChart = new ItineraryData((<FlightSearchResults> data).itineraryResults.trips);
+                    this.fullScreen.initializeCharts((<FlightSearchResults> data).itineraryResults.trips);
+                    data = null;   //clean the received results hoping to get back memory                 
                 }
             });
+        }
+        /**
+         * Zones are used in the axis exact local timings display
+         * TODO: pending label for Timezone in axis
+         */
+        private calculateZones(): void {
+            console.log("now ",moment.version);
+            departZone = moment.parseZone(axisData.dateAxisMinMaxList[0].departMin).utcOffset();
+            arrivalZone = moment.parseZone(axisData.dateAxisMinMaxList[0].arrivalMax).utcOffset();
+            console.log(departZone, arrivalZone);
         }
 	}
 }
