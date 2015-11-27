@@ -1,76 +1,57 @@
 /// <reference path="../defi/jquery.d.ts"/>
 /// <reference path="../defi/d3.d.ts"/>
 /// <reference path="data/FlightUIData.ts"/>
-/// <reference path="FlightChartUI.ts"/>
+/// <reference path="SliceChart.ts"/>
 
 module Flights {
 	export class FullScreenFlightUI {	
-		private flightChartUIs: FlightChartUI[];
+		private sliceChart: SliceChart[];
+		private flightUIData: FlightUIData;
 			
 		constructor() {	
-			this.flightChartUIs = new Array<FlightChartUI>();
-			this.initializeUIElements();
+			this.sliceChart = new Array<SliceChart>();
+			this.flightUIData = new FlightUIData();
             this.registerBrowserResize();
 		}
 		
-		public initializeCharts(trips: Array<TripDetail>){			
+		public initializeCharts(trips: Array<TripDetail>){	
             for(var i=0; i < trips[0].slices.length; i++){
-                this.flightChartUIs[i] = new FlightChartUI(i);
+                this.sliceChart[i] = new SliceChart(i, this.flightUIData);
             }
 			this.resetScreen();
 		}
 		
         private registerBrowserResize(): void {		
-			//$(document).ready(() => this.resetScreen());    // When the page first loads
+			//$(document).ready(() => this.resetScreen());    // When the page first loads, no longer needed
 			$(window).resize(() => this.resetScreen()); 
         }
         
         private resetScreen(): void{
             console.log('resetScreen');
             this.reCalculateScreen();
-            if(axisData != null) {                
-				for(var i=0; i < this.flightChartUIs.length; i++){
-					this.flightChartUIs[i].redrawAxis();
-					this.flightChartUIs[i].redrawFlights(0, null);
+			this.reDrawCharts();
+        }        
+		     
+		/**
+		* for better visual display first redraw chart outlay and then draw data
+		*/           
+		private reDrawCharts(){
+            if(axisData != null) {
+				for(var i=0; i < this.sliceChart.length; i++){
+					this.sliceChart[i].redrawAxis();
+				}
+				for(var i=0; i < this.sliceChart.length; i++){
+					this.sliceChart[i].redrawFlights(0, null);
 				}
             }
-        }
-        
+		}
         		
 		private reCalculateScreen(){
 		    // Get the dimensions of the viewport
-		    flightUIData.browser = {width:$(window).width(), height:$(window).height()};
-			this.calculateSection();
-			this.calculateMeasurements();
-			for(var i=0; i < this.flightChartUIs.length; i++){
-                this.flightChartUIs[i].reCalculateUI();
+			this.flightUIData.reCalculateUIData();
+			for(var i=0; i < this.sliceChart.length; i++){
+                this.sliceChart[i].reCalculateUI();
             }
 		}
-		
-		private calculateMeasurements(): void {
-			//this.chartSize = {width:(this.browser.width / 2) - 10, height:(this.browser.height/2) - 10, xScaleWidth:10, yScaleHeight:10};
-			flightUIData.chartSize = {width:flightUIData.sectionElements.chartSection.width() - 4, height:(flightUIData.browser.height/2) - 4, xScaleWidth:10, yScaleHeight:10};
-            flightUIData.chartSize.xScaleWidth = flightUIData.chartSize.width - flightUIData.axisSize.leftAxisSize - flightUIData.axisSize.rightAxisSize;	
-            flightUIData.chartSize.yScaleHeight = flightUIData.chartSize.height-flightUIData.axisSize.topAxisSize-flightUIData.axisSize.bottomAxisSize;
-			console.log('calculateMeasurements ', flightUIData.browser.width, Math.floor((flightUIData.browser.width/3) * 2) - 4, flightUIData.sectionElements.chartSection.width());	
-		}
-		
-		private calculateSection(): void{
-			if(flightUIData.browser.width/3 >= flightUIData.sectionSize.listWidthMinPixel){
-				flightUIData.sectionElements.listSection.width(Math.floor(flightUIData.browser.width/3) - flightUIData.sectionMargin);
-				flightUIData.sectionElements.chartSection.width(Math.floor((flightUIData.browser.width/3) * 2) - flightUIData.sectionMargin);
-			}else{
-				
-				//TODO
-			}
-		}
-		
-		private initializeUIElements(){
-			flightUIData.sectionElements = {listSection: $("#listSection"), chartSection: $("#chartSection")};
-			listElement = d3.select("#flights-list");
-			flightUIData.brushSize = {bottomBrushSize: 25, leftBrushSize: 25, topBrushSize: 25, rightBrushSize: 25};
-			flightUIData.axisSize = {bottomAxisSize: 25, leftAxisSize: 50, topAxisSize: 25, rightAxisSize: 25};
-			flightUIData.sectionSize = {listWidthMinPixel:200, listWidthMinPercent: 33, chartWidthMinPixel:800}
-		}	
 	}
 }

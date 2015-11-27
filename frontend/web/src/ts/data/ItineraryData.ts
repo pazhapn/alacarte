@@ -1,5 +1,6 @@
 /// <reference path="../../defi/crossfilter.d.ts"/>
 /// <reference path="../../defi/d3.d.ts"/>
+/// <reference path="CommonData.ts"/>
 /// <reference path="../models/FlightModels.ts"/>
 
 module Flights {  
